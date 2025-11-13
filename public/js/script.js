@@ -3,6 +3,13 @@ async function fetchJson(url, opts = {}) {
   return res.json();
 }
 
+function addLog(text) {
+  const logs = document.getElementById('logs');
+  const li = document.createElement('li');
+  li.textContent = text;
+  logs.prepend(li);
+}
+
 async function initDashboard() {
   const s = await fetchJson('/api/session');
   if (!s.ok) return window.location.href = '/';
@@ -10,9 +17,7 @@ async function initDashboard() {
   const user = s.user;
   document.getElementById('welcome').textContent = `Bem-vindo, ${user.username}!`;
 
-  // Checa se é Staff ou Owner
   const staffCheck = await fetchJson('/api/isStaff');
-  console.log('isStaff:', staffCheck.ok);
   if (!staffCheck.ok) {
     document.getElementById('staff-panel').style.display = 'none';
     document.getElementById('not-staff').style.display = 'block';
@@ -22,22 +27,24 @@ async function initDashboard() {
   document.getElementById('staff-panel').style.display = 'block';
   document.getElementById('not-staff').style.display = 'none';
 
-  // Busca membros reais
-  const membersRes = await fetchJson('/api/members');
-  const membersList = document.getElementById('members');
-  if (membersRes.ok) {
-    membersList.innerHTML = membersRes.members.map(m => 
-      `<li>${m.username}#${m.discriminator} - Roles: ${m.roles.join(', ')}</li>`
-    ).join('');
-  }
+  // Mostra informações do usuário
+  document.getElementById('user-avatar').src = user.avatarURL || '';
+  document.getElementById('user-tag').textContent = `${user.username}#${user.discriminator}`;
+  document.getElementById('user-id').textContent = `ID: ${user.id}`;
+  document.getElementById('user-roles').textContent = user.roles.join(', ');
 
-  // Botões Staff simulados
-  document.getElementById('btnKick').onclick = () => alert('Usuário expulso (simulado)');
-  document.getElementById('btnBan').onclick = () => alert('Usuário banido (simulado)');
+  // Botões de ação simulados
+  document.getElementById('btnKick').onclick = () => addLog('Usuário expulso (simulado)');
+  document.getElementById('btnBan').onclick = () => addLog('Usuário banido (simulado)');
+  document.getElementById('btnMute').onclick = () => addLog('Usuário silenciado (simulado)');
+  document.getElementById('btnWarn').onclick = () => addLog('Usuário avisado (simulado)');
+  document.getElementById('btnReport').onclick = () => addLog('Relatório gerado (simulado)');
   document.getElementById('btnLogout').onclick = async () => {
     await fetchJson('/api/logout');
     window.location.href = '/';
   };
+
+  addLog('Dashboard carregado com sucesso!');
 }
 
 initDashboard();
