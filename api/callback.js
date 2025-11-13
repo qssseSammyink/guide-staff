@@ -30,18 +30,10 @@ module.exports = async (req, res) => {
   });
   const user = await userRes.json();
 
-  const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
-    headers: { Authorization: `Bearer ${token.access_token}` }
-  });
-  const guilds = await guildsRes.json();
   const guildId = process.env.MY_GUILD_ID;
-  const inGuild = Array.isArray(guilds) && guilds.find(g => g.id === guildId);
-  if (!inGuild) return res.writeHead(302, { Location: '/?error=not_in_guild' }), res.end();
-
   const BOT_TOKEN = process.env.BOT_TOKEN;
   const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID;
   const OWNER_ID = process.env.OWNER_ID;
-  if (!BOT_TOKEN) return res.writeHead(302, { Location: '/?error=no_bot' }), res.end();
 
   const memberRes = await fetch(`https://discord.com/api/guilds/${guildId}/members/${user.id}`, {
     headers: { Authorization: `Bot ${BOT_TOKEN}` }
@@ -53,9 +45,14 @@ module.exports = async (req, res) => {
   const hasRole = Array.isArray(member.roles) && member.roles.includes(STAFF_ROLE_ID);
   if (!hasRole && !isOwner) return res.writeHead(302, { Location: '/?error=no_role' }), res.end();
 
-  const sessionValue = Buffer.from(JSON.stringify({ id: user.id, username: user.username })).toString('base64');
-  res.setHeader('Set-Cookie', `sf_sess=${sessionValue}; HttpOnly; Path=/; Max-Age=3600`);
+  // ✅ Salva roles no cookie para backend e frontend
+  const sessionValue = Buffer.from(JSON.stringify({
+    id: user.id,
+    username: user.username,
+    roles: member.roles
+  })).toString('base64');
 
+  res.setHeader('Set-Cookie', `sf_sess=${sessionValue}; HttpOnly; Path=/; Max-Age=3600`);
   res.writeHead(302, { Location: '/dashboard.html' });
   res.end();
 };

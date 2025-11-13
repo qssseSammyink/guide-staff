@@ -12,6 +12,7 @@ async function initDashboard() {
 
   // Checa se é Staff ou Owner
   const staffCheck = await fetchJson('/api/isStaff');
+  console.log('isStaff:', staffCheck.ok);
   if (!staffCheck.ok) {
     document.getElementById('staff-panel').style.display = 'none';
     document.getElementById('not-staff').style.display = 'block';
