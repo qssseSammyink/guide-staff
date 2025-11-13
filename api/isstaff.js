@@ -1,4 +1,4 @@
-module.exports = async (req, res) => {
+module.exports = (req, res) => {
   const cookie = req.headers.cookie || '';
   const session = cookie.split(';').find(c => c.trim().startsWith('sf_sess='));
   if (!session) return res.json({ ok: false });

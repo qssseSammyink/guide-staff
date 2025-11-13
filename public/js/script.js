@@ -15,25 +15,18 @@ async function initDashboard() {
   if (!s.ok) return window.location.href = '/';
 
   const user = s.user;
-  document.getElementById('welcome').textContent = `Bem-vindo, ${user.username}!`;
-
-  const staffCheck = await fetchJson('/api/isStaff');
-  if (!staffCheck.ok) {
-    document.getElementById('staff-panel').style.display = 'none';
-    document.getElementById('not-staff').style.display = 'block';
-    return;
-  }
-
-  document.getElementById('staff-panel').style.display = 'block';
-  document.getElementById('not-staff').style.display = 'none';
-
-  // Mostra informações do usuário
   document.getElementById('user-avatar').src = user.avatarURL || '';
   document.getElementById('user-tag').textContent = `${user.username}#${user.discriminator}`;
   document.getElementById('user-id').textContent = `ID: ${user.id}`;
   document.getElementById('user-roles').textContent = user.roles.join(', ');
 
-  // Botões de ação simulados
+  const staffCheck = await fetchJson('/api/isStaff');
+  if (!staffCheck.ok) {
+    alert('Você não tem acesso Staff');
+    window.location.href = '/';
+    return;
+  }
+
   document.getElementById('btnKick').onclick = () => addLog('Usuário expulso (simulado)');
   document.getElementById('btnBan').onclick = () => addLog('Usuário banido (simulado)');
   document.getElementById('btnMute').onclick = () => addLog('Usuário silenciado (simulado)');

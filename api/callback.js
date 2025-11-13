@@ -11,18 +11,13 @@ module.exports = async (req, res) => {
   params.append('code', code);
   params.append('redirect_uri', process.env.DISCORD_REDIRECT_URI);
 
-  let token;
-  try {
-    const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params
-    });
-    token = await tokenRes.json();
-  } catch {
-    return res.writeHead(302, { Location: '/?error=token' }), res.end();
-  }
+  const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params
+  });
 
+  const token = await tokenRes.json();
   if (!token.access_token) return res.writeHead(302, { Location: '/?error=token' }), res.end();
 
   const userRes = await fetch('https://discord.com/api/users/@me', {
@@ -38,17 +33,19 @@ module.exports = async (req, res) => {
   const memberRes = await fetch(`https://discord.com/api/guilds/${guildId}/members/${user.id}`, {
     headers: { Authorization: `Bot ${BOT_TOKEN}` }
   });
-  if (memberRes.status !== 200) return res.writeHead(302, { Location: '/?error=not_member' }), res.end();
 
+  if (memberRes.status !== 200) return res.writeHead(302, { Location: '/?error=not_member' }), res.end();
   const member = await memberRes.json();
+
   const isOwner = user.id === OWNER_ID;
   const hasRole = Array.isArray(member.roles) && member.roles.includes(STAFF_ROLE_ID);
   if (!hasRole && !isOwner) return res.writeHead(302, { Location: '/?error=no_role' }), res.end();
 
-  // ✅ Salva roles no cookie para backend e frontend
   const sessionValue = Buffer.from(JSON.stringify({
     id: user.id,
     username: user.username,
+    discriminator: user.discriminator,
+    avatarURL: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`,
     roles: member.roles
   })).toString('base64');
 

@@ -7,36 +7,34 @@
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<h1>Staff Dashboard</h1>
-<p id="welcome"></p>
+<div class="dash">
 
-<div id="not-staff" style="display:none;">
-  <p>Você não tem acesso Staff.</p>
-</div>
-
-<div id="staff-panel" style="display:none;">
+  <div class="dash-header">
+    <h1>Staff Dashboard</h1>
+    <button id="btnLogout">Logout</button>
+  </div>
 
   <!-- Informações do usuário -->
   <div id="user-info">
-    <img id="user-avatar" src="" alt="Avatar" width="80" />
-    <p id="user-tag"></p>
-    <p id="user-id"></p>
-    <p id="user-roles"></p>
+    <img id="user-avatar" src="" alt="Avatar">
+    <div>
+      <p id="user-tag"></p>
+      <p id="user-id"></p>
+      <p id="user-roles"></p>
+    </div>
   </div>
 
-  <!-- Ações rápidas -->
-  <div id="actions-panel">
-    <h2>Ações da Staff</h2>
+  <!-- Ações Staff -->
+  <div class="controls">
     <button id="btnKick">Expulsar usuário (simulado)</button>
     <button id="btnBan">Banir usuário (simulado)</button>
     <button id="btnMute">Silenciar usuário (simulado)</button>
     <button id="btnWarn">Avisar usuário (simulado)</button>
     <button id="btnReport">Gerar relatório (simulado)</button>
-    <button id="btnLogout">Logout</button>
   </div>
 
   <!-- Logs -->
-  <div id="logs-panel">
+  <div id="logs-panel" class="panel">
     <h2>Logs recentes</h2>
     <ul id="logs"></ul>
   </div>
