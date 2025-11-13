@@ -1,4 +1,3 @@
-// Redirect to Discord's OAuth2 authorize URL
 module.exports = (req, res) => {
   const clientId = process.env.DISCORD_CLIENT_ID;
   const redirect = encodeURIComponent(process.env.DISCORD_REDIRECT_URI);

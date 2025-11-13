@@ -1,32 +1,40 @@
-// dashboard client: checa sessão curta via /api/session
-async function fetchJson(path){
-  const res = await fetch(path, { credentials: 'same-origin' });
+async function fetchJson(url, opts = {}) {
+  const res = await fetch(url, opts);
   return res.json();
 }
 
-async function init(){
-  // checar sessão; se não estiver logado -> volta ao index
+async function initDashboard() {
   const s = await fetchJson('/api/session');
   if (!s.ok) return window.location.href = '/';
-  // exibir user
-  document.getElementById('userInfo').textContent = s.user.username + ' (Discord)';
-}
+  
+  const user = s.user;
+  document.getElementById('welcome').textContent = `Bem-vindo, ${user.username}!`;
 
-document.getElementById && init();
+  // Checa se é Staff ou Owner via backend
+  const staffCheck = await fetchJson('/api/isStaff');
+  if (!staffCheck.ok) {
+    document.getElementById('staff-panel').style.display = 'none';
+    document.getElementById('not-staff').style.display = 'block';
+    return;
+  }
 
-// logout
-if (document.getElementById('logoutBtn')){
-  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
-    await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+  document.getElementById('staff-panel').style.display = 'block';
+  document.getElementById('not-staff').style.display = 'none';
+
+  // Pega membros do servidor
+  const membersRes = await fetchJson('/api/members');
+  const membersList = document.getElementById('members');
+  if (membersRes.ok) {
+    membersList.innerHTML = membersRes.members.map(u => `<li>${u.username}</li>`).join('');
+  }
+
+  // Botões Staff
+  document.getElementById('btnKick').onclick = () => alert('Usuário expulso (simulado)');
+  document.getElementById('btnBan').onclick = () => alert('Usuário banido (simulado)');
+  document.getElementById('btnLogout').onclick = async () => {
+    await fetchJson('/api/logout');
     window.location.href = '/';
-  });
+  };
 }
 
-// fetch members (opcional - fake)
-if (document.getElementById('btnFetch')){
-  document.getElementById('btnFetch').addEventListener('click', async ()=>{
-    const m = ['Aster#0001','LunaFur#2233','NovaFemboy#9999','CelestialFox#1111'];
-    document.getElementById('members').innerHTML = m.map(x=>'<li>'+x+'</li>').join('');
-    document.getElementById('info').textContent = 'Dados atualizados em ' + new Date().toLocaleString();
-  });
-}
+initDashboard();

@@ -11,7 +11,6 @@ module.exports = async (req, res) => {
   params.append('code', code);
   params.append('redirect_uri', process.env.DISCORD_REDIRECT_URI);
 
-  // Troca code por access_token
   let token;
   try {
     const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
@@ -20,32 +19,28 @@ module.exports = async (req, res) => {
       body: params
     });
     token = await tokenRes.json();
-  } catch (err) {
+  } catch {
     return res.writeHead(302, { Location: '/?error=token' }), res.end();
   }
 
   if (!token.access_token) return res.writeHead(302, { Location: '/?error=token' }), res.end();
 
-  // Pega usuário
   const userRes = await fetch('https://discord.com/api/users/@me', {
     headers: { Authorization: `Bearer ${token.access_token}` }
   });
   const user = await userRes.json();
 
-  // Checa se está no servidor (guild)
   const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
     headers: { Authorization: `Bearer ${token.access_token}` }
   });
   const guilds = await guildsRes.json();
-  const guildId = process.env.MY_GUILD_ID || '1438357746813632594';
+  const guildId = process.env.MY_GUILD_ID;
   const inGuild = Array.isArray(guilds) && guilds.find(g => g.id === guildId);
   if (!inGuild) return res.writeHead(302, { Location: '/?error=not_in_guild' }), res.end();
 
-  // Checa roles com BOT_TOKEN
   const BOT_TOKEN = process.env.BOT_TOKEN;
-  const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID || '1438357746813632594';
+  const STAFF_ROLE_ID = process.env.STAFF_ROLE_ID;
   const OWNER_ID = process.env.OWNER_ID;
-
   if (!BOT_TOKEN) return res.writeHead(302, { Location: '/?error=no_bot' }), res.end();
 
   const memberRes = await fetch(`https://discord.com/api/guilds/${guildId}/members/${user.id}`, {
@@ -54,20 +49,13 @@ module.exports = async (req, res) => {
   if (memberRes.status !== 200) return res.writeHead(302, { Location: '/?error=not_member' }), res.end();
 
   const member = await memberRes.json();
-
-  // Verifica se é Staff ou Owner
   const isOwner = user.id === OWNER_ID;
   const hasRole = Array.isArray(member.roles) && member.roles.includes(STAFF_ROLE_ID);
+  if (!hasRole && !isOwner) return res.writeHead(302, { Location: '/?error=no_role' }), res.end();
 
-  if (!hasRole && !isOwner) {
-    return res.writeHead(302, { Location: '/?error=no_role' }), res.end();
-  }
-
-  // Sucesso: cria cookie de sessão simples
   const sessionValue = Buffer.from(JSON.stringify({ id: user.id, username: user.username })).toString('base64');
   res.setHeader('Set-Cookie', `sf_sess=${sessionValue}; HttpOnly; Path=/; Max-Age=3600`);
 
-  // Redireciona para dashboard
   res.writeHead(302, { Location: '/dashboard.html' });
   res.end();
 };
