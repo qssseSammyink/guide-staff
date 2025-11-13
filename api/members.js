@@ -1,3 +1,5 @@
+const fetch = require('node-fetch');
+
 module.exports = async (req, res) => {
   const cookie = req.headers.cookie || '';
   const session = cookie.split(';').find(c => c.trim().startsWith('sf_sess='));
@@ -7,11 +9,29 @@ module.exports = async (req, res) => {
   const isStaff = user.id === process.env.OWNER_ID || user.roles?.includes(process.env.STAFF_ROLE_ID);
   if (!isStaff) return res.status(403).json({ ok: false });
 
-  const members = [
-    { username: 'Aster#0001' },
-    { username: 'Nova#1234' },
-    { username: 'Celestial#5678' }
-  ];
+  const guildId = process.env.MY_GUILD_ID;
+  const BOT_TOKEN = process.env.BOT_TOKEN;
 
-  res.json({ ok: true, members });
+  try {
+    // Pega membros do servidor
+    const guildRes = await fetch(`https://discord.com/api/guilds/${guildId}/members?limit=1000`, {
+      headers: { Authorization: `Bot ${BOT_TOKEN}` }
+    });
+
+    if (!guildRes.ok) return res.status(500).json({ ok: false, error: 'Falha ao buscar membros' });
+
+    const members = await guildRes.json();
+
+    // Retorna só username + discriminator + roles
+    const data = members.map(m => ({
+      username: m.user.username,
+      discriminator: m.user.discriminator,
+      roles: m.roles
+    }));
+
+    res.json({ ok: true, members: data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: 'Erro interno' });
+  }
 };
