@@ -1,0 +1,18 @@
+{
+    "client" : {
+        "authToken" : "YOUR_DISCORD_BOT_TOKEN",
+        "clientID" : "1438756929408339999"
+    },
+
+    "handler" : {
+        "guildID" : "1419705745162764421"
+    },
+
+    "global" : {
+        "prefix" : "y!"
+    },
+
+    "developers" : {
+        "owner" : ["1333518488777523274"]
+    }
+}
